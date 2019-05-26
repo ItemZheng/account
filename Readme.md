@@ -9,7 +9,7 @@
 
 ##### 文件说明
 
-`main/resources/application.properties` :工程项目配置
+`main/resources/application.properties` :工程项目配置，包括数据库地址
 
 ##### 文件夹说明
 
@@ -38,4 +38,8 @@
 附：查看代码主人的方法
 https://www.jianshu.com/p/52459a41999b?utm_campaign
 
+##### 目前登陆可用参数
 
++ username: itemzheng
++ key: 5aa8e18b049dad51660be7b75d9f0fb2
++ timestamp: 1
