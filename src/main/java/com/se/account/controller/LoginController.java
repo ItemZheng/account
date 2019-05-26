@@ -1,7 +1,7 @@
 package com.se.account.controller;
 
 import com.se.account.annotation.LoginIgnore;
-import com.se.account.dao.AdminRepository;
+import com.se.account.dal.AdminRepository;
 import com.se.account.domain.Admin;
 import com.se.account.dto.AdminInfo;
 import com.se.account.util.Check;

@@ -1,4 +1,4 @@
-package com.se.account.dao;
+package com.se.account.dal;
 
 import com.se.account.domain.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
