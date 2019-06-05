@@ -33,7 +33,7 @@ public class LoginHandleInterceptor extends BaseInterceptor{
         }
         // 需要登陆
         HttpSession session = request.getSession();
-        if (session != null && session.getAttribute(Constant.Session_Account_Key) != null) {
+        if (session != null && session.getAttribute(Constant.SESSION_ACCOUNT_KEY) != null) {
             return true;
         }
         log.warn("User Not Login");

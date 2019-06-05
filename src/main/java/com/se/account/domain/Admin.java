@@ -16,6 +16,6 @@ public class Admin {
     private String password;
     private Date create_time;
     private Date modify_time;
-    private boolean enable;
+    private boolean removed;
 }
 

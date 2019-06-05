@@ -29,10 +29,10 @@ public class BaseController {
     }
 
     Admin getAdmin(){
-        return (Admin) session.getAttribute(Constant.Session_Account_Key);
+        return (Admin) session.getAttribute(Constant.SESSION_ACCOUNT_KEY);
     }
 
     void setAdmin(Admin admin){
-        session.setAttribute(Constant.Session_Account_Key, admin);
+        session.setAttribute(Constant.SESSION_ACCOUNT_KEY, admin);
     }
 }

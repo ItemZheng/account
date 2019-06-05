@@ -4,22 +4,25 @@ import com.se.account.annotation.LoginIgnore;
 import com.se.account.dal.AdminRepository;
 import com.se.account.domain.Admin;
 import com.se.account.dto.AdminInfo;
+import com.se.account.service.AdminService;
 import com.se.account.util.Check;
 import com.se.account.util.ErrorEnum;
 import com.se.account.util.Util;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.util.Date;
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
 public class LoginController extends BaseController{
-    @Autowired
+    @Resource
     AdminRepository adminDb;
+
+    @Resource
+    AdminService adminService;
 
     @RequestMapping("/login")
     @LoginIgnore
@@ -29,11 +32,10 @@ public class LoginController extends BaseController{
         }
 
         // check if exist
-        List adminList = adminDb.findByNameAndEnable(username, true);
-        if(adminList != null && adminList.size() != 1){
+        Admin admin = adminService.getAdminByName(username);
+        if(admin == null){
             return buildResponse(ErrorEnum.ERROR_USERNAME_INVALID);
         }
-        Admin admin = (Admin) adminList.get(0);
         try {
             if(key.equals(Util.Md5(username + admin.getPassword() + timestamp))){
                 setAdmin(admin);
@@ -52,7 +54,7 @@ public class LoginController extends BaseController{
     public Object add(@NonNull String username, @NonNull String password, @NonNull String confirmPassword){
         // check valid password
         if(!Check.checkValidPassword(password)){
-            return buildResponse(ErrorEnum.ERROR_Password_INVALID);
+            return buildResponse(ErrorEnum.ERROR_PASSWORD_INVALID);
         }
         if(!Check.checkValidUsername(username)){
             return buildResponse(ErrorEnum.ERROR_USERNAME_INVALID);
@@ -60,12 +62,11 @@ public class LoginController extends BaseController{
 
         // check
         if(!password.equals(confirmPassword)){
-            return buildResponse(ErrorEnum.ERROR_Password_NOT_SAME);
+            return buildResponse(ErrorEnum.ERROR_PASSWORD_NOT_SAME);
         }
 
         // check if exist
-        List adminList = adminDb.findByNameAndEnable(username, true);
-        if(adminList != null && adminList.size() > 0){
+        if(adminService.exist(username)){
             return buildResponse(ErrorEnum.ERROR_USERNAME_EXIST);
         }
 
@@ -76,7 +77,7 @@ public class LoginController extends BaseController{
         admin.setPassword(password);
         admin.setModify_time(date);
         admin.setCreate_time(date);
-        admin.setEnable(false);
+        admin.setRemoved(false);
         adminDb.save(admin);
         return buildSuccessResp(null);
     }
