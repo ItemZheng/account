@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface RecordRepository extends JpaRepository<Record, Long> {
     List<Record> getAllByBalanceIdAndRemoved(long balanceId, boolean removed);
+    Record getRecordByIdAndRemoved(long id, boolean removed);
+    Record getRecordByPreDecreaseIdAndRemoved(long preDecreaseId, boolean removed);
 }

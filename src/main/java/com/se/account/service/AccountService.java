@@ -99,6 +99,12 @@ public class AccountService {
         }
     }
 
+    private void checkBalance(Balance balance, double amount) throws ServiceException{
+        if (balance.getAvailable_balance() < amount) {
+            throw new ServiceException(ErrorEnum.ERROR_BALANCE_NOT_ENOUGH);
+        }
+    }
+
     public void operate(long accountId, String withdrawalPwd, double amount, long staffId, int opCode) throws ServiceException {
         if (amount <= 0) {
             throw new ServiceException(ErrorEnum.ERROR_AMOUNT_ERROR);
@@ -112,12 +118,9 @@ public class AccountService {
         if (!account.getWithdrawal_pwd().equals(withdrawalPwd)) {
             throw new ServiceException(ErrorEnum.ERROR_WITHDRAWAL_PASSWORD_ERROR);
         }
-
+        // check amount
         if (opCode == Constant.BALANCE_OPCODE_WITHDRAWAL) {
-            // check amount
-            if (balance.getAvailable_balance() < amount) {
-                throw new ServiceException(ErrorEnum.ERROR_BALANCE_NOT_ENOUGH);
-            }
+            checkBalance(balance, amount);
         }
 
         // operate money
@@ -142,7 +145,7 @@ public class AccountService {
         record.setBalanceId(balance.getId());
         record.setAmount(amount);
         record.setOperate_code(opCode);
-        record.setPre_decrease_id(0);
+        record.setPreDecreaseId(0);
         record.setCreate_staff(staffId);
         record.setCreate_time(timeNow);
         record.setModify_staff(staffId);
@@ -278,4 +281,146 @@ public class AccountService {
             throw new ServiceException(ErrorEnum.ERROR_UNKNOWN);
         }
     }
+
+    private void checkRecordHandled(long recordId) throws ServiceException{
+        Record record = recordDb.getRecordByPreDecreaseIdAndRemoved(recordId, false);
+        if( record != null && record.getOperate_code() == Constant.BALANCE_OPCODE_RECOVER){
+            throw new ServiceException(ErrorEnum.ERROR_ALREADY_RECOVERED);
+        } else if(record != null && record.getOperate_code() == Constant.BALANCE_OPCODE_REDUCE){
+            throw new ServiceException(ErrorEnum.ERROR_ALREADY_DECREASED);
+        } else if(record != null){
+            throw new ServiceException(ErrorEnum.ERROR_UNKNOWN);
+        }
+    }
+
+    private void checkPreDecreaseRecord(Record record) throws ServiceException{
+        if(record == null){
+            throw new ServiceException(ErrorEnum.ERROR_RECORD_NOT_FOUND);
+        }
+        if(record.getOperate_code() != Constant.BALANCE_OPCODE_BUY){
+            throw new ServiceException(ErrorEnum.ERROR_RECORD_TYPE_ERROR);
+        }
+        checkRecordHandled(record.getId());
+    }
+
+    // 股票指令发出时，冻结/预扣除
+    public long freeze(double amount, long accountId) throws ServiceException{
+        if (amount <= 0) {
+            throw new ServiceException(ErrorEnum.ERROR_AMOUNT_ERROR);
+        }
+
+        Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
+        Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(accountId, false);
+        validateAccountAndBalance(account, balance);
+        checkBalance(balance, amount);
+
+        // modify
+        Date timeNow = new Date();
+        balance.setAvailable_balance(balance.getAvailable_balance() - amount);
+        balance.setModify_staff(0);
+        balance.setModify_time(timeNow);
+
+        // Record
+        Record record = new Record();
+        record.setBalanceId(balance.getId());
+        record.setAmount(amount);
+        record.setOperate_code(Constant.BALANCE_OPCODE_BUY);
+        record.setPreDecreaseId(0);
+        record.setCreate_staff(0);
+        record.setCreate_time(timeNow);
+        record.setModify_staff(0);
+        record.setModify_time(timeNow);
+        record.setRemoved(false);
+        try{
+            accountTransaction.saveBalanceAndRecordDB(balance, record);
+        } catch (Exception e){
+            log.error("ERROR FREEZE BALANCE. ERROR: " + e.getMessage());
+            throw new ServiceException(ErrorEnum.ERROR_UNKNOWN);
+        }
+        return record.getId();
+    }
+
+    // 股票购买成功时，扣除
+    public void decrease(long recordId) throws ServiceException{
+        Record record = recordDb.getRecordByIdAndRemoved(recordId, false);
+        checkPreDecreaseRecord(record);
+
+        // get balance
+        Balance balance = balanceDb.getBalanceByIdAndRemoved(record.getBalanceId(), false);
+        if(balance == null){
+            throw new ServiceException(ErrorEnum.ERROR_BALANCE_NOT_EXIST);
+        }
+
+        // update
+        Date timeNow = new Date();
+        balance.setBalance(balance.getBalance() - record.getAmount());
+        balance.setModify_staff(0);
+        balance.setModify_time(timeNow);
+
+        // Record
+        Record r = new Record();
+        r.setBalanceId(balance.getId());
+        r.setAmount(record.getAmount());
+        r.setOperate_code(Constant.BALANCE_OPCODE_REDUCE);
+        r.setPreDecreaseId(recordId);
+        r.setCreate_staff(0);
+        r.setCreate_time(timeNow);
+        r.setModify_staff(0);
+        r.setModify_time(timeNow);
+        r.setRemoved(false);
+        try{
+            accountTransaction.saveBalanceAndRecordDB(balance, r);
+        } catch (Exception e){
+            log.error("ERROR DECREASE BALANCE. ERROR: " + e.getMessage());
+            throw new ServiceException(ErrorEnum.ERROR_UNKNOWN);
+        }
+    }
+
+    // 股票购买失败/指令撤回时，恢复
+    public void recover(long recordId) throws ServiceException{
+        Record record = recordDb.getRecordByIdAndRemoved(recordId, false);
+        checkPreDecreaseRecord(record);
+
+        // get balance
+        Balance balance = balanceDb.getBalanceByIdAndRemoved(record.getBalanceId(), false);
+        if(balance == null){
+            throw new ServiceException(ErrorEnum.ERROR_BALANCE_NOT_EXIST);
+        }
+
+        // update
+        Date timeNow = new Date();
+        balance.setAvailable_balance(balance.getAvailable_balance() + record.getAmount());
+        balance.setModify_staff(0);
+        balance.setModify_time(timeNow);
+
+        // Record
+        Record r = new Record();
+        r.setBalanceId(balance.getId());
+        r.setAmount(record.getAmount());
+        r.setOperate_code(Constant.BALANCE_OPCODE_RECOVER);
+        r.setPreDecreaseId(recordId);
+        r.setCreate_staff(0);
+        r.setCreate_time(timeNow);
+        r.setModify_staff(0);
+        r.setModify_time(timeNow);
+        r.setRemoved(false);
+        try{
+            accountTransaction.saveBalanceAndRecordDB(balance, r);
+        } catch (Exception e){
+            log.error("ERROR RECOVER BALANCE. ERROR: " + e.getMessage());
+            throw new ServiceException(ErrorEnum.ERROR_UNKNOWN);
+        }
+    }
+
+    // 交易客户端登陆
+    public void clientLogin(long accountId, String password) throws ServiceException{
+        Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
+        if(account == null){
+            throw new ServiceException(ErrorEnum.ERROR_ACCOUNT_NOT_EXIST);
+        }
+        if(!account.getTransaction_pwd().equals(password)){
+            throw new ServiceException(ErrorEnum.ERROR_USERNAME_PASSWORD_ERROR);
+        }
+    }
+
 }

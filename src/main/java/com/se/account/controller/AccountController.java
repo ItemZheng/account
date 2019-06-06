@@ -24,7 +24,6 @@ import java.util.Date;
 @Slf4j
 public class AccountController extends BaseController{
     // todo 每年定时发放利息
-    // todo 提供给其他模块的消费/恢复接口
     @Resource
     AccountService accountService;
 
@@ -229,7 +228,7 @@ public class AccountController extends BaseController{
         }
     }
 
-    @RequestMapping("cancel")
+    @RequestMapping("/cancel")
     public Object cancel(long identityId, long securitiesAccountId, long accountId){
         // todo check match identityId and securitiesAccountId
         try {
@@ -237,6 +236,49 @@ public class AccountController extends BaseController{
             return buildSuccessResp(null);
         }catch (ServiceException e){
             log.error("Cancel error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
+    }
+
+    @RequestMapping("/freeze")
+    public Object freeze(double amount, long accountId){
+        try {
+            return buildSuccessResp(accountService.freeze(amount, accountId));
+        }catch (ServiceException e){
+            log.error("Freeze error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
+    }
+
+    @RequestMapping("/decrease")
+    public Object freeze(long recordId){
+        try {
+            accountService.decrease(recordId);
+            return buildSuccessResp(null);
+        }catch (ServiceException e){
+            log.error("Decrease error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
+    }
+
+    @RequestMapping("/recover")
+    public Object recover(long recordId){
+        try {
+            accountService.recover(recordId);
+            return buildSuccessResp(null);
+        }catch (ServiceException e){
+            log.error("Recover error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
+    }
+
+    @RequestMapping("/clientLogin")
+    public Object clientLogin(long accountId, String password){
+        try {
+            accountService.clientLogin(accountId, password);
+            return buildSuccessResp(null);
+        }catch (ServiceException e){
+            log.error("Client login error: " + e.getErrorEnum().getEnDes());
             return buildResponse(e.getErrorEnum());
         }
     }

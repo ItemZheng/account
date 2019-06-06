@@ -24,6 +24,11 @@ public enum ErrorEnum {
     ERROR_ACCOUNT_NOT_REPORT_LOSS(20, "Account not report loss", "账户未挂失"),
     ERROR_SECURITIES_ACCOUNT_NOT_MATCH_FUND_ACCOUNT(21, "Securities account not match fund account", "证券账户与资金账户不匹配"),
     ERROR_BALANCE_IS_NOT_ZERO(22, "Balance is not zero", "资金余额不为0"),
+    ERROR_RECORD_NOT_FOUND(23, "Record not found", "记录未找到"),
+    ERROR_ALREADY_DECREASED(24, "Already been decreased", "该记录已经扣款"),
+    ERROR_ALREADY_RECOVERED(25, "Already been recovered", "该记录已经恢复"),
+    ERROR_RECORD_TYPE_ERROR(26, "Record type error", "记录类型错误"),
+
     ;
     int code;       // error code
     String enDes;   // english error description
