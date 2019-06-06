@@ -18,7 +18,7 @@ public class Constant {
     public static final int BALANCE_OPCODE_RECOVER = 103;       // 购买失败恢复
     public static final int BALANCE_OPCODE_BUY = 201;           // 冻结部分资金
     public static final int BALANCE_OPCODE_WITHDRAWAL = 202;    // 取款
-    public static final int BALNACE_OPCODE_REDUCE = 203;        // 购买成功后扣款
+    public static final int BALANCE_OPCODE_REDUCE = 203;        // 购买成功后扣款
 
     // 余额状态
     public static final int BALANCE_STATUS_NORMAL = 0;      // 正常

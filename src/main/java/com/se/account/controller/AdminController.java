@@ -7,7 +7,6 @@ import com.se.account.dto.AdminInfo;
 import com.se.account.service.AdminService;
 import com.se.account.util.Check;
 import com.se.account.util.ErrorEnum;
-import com.se.account.util.Util;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +16,7 @@ import java.util.Date;
 
 @RestController
 @RequestMapping("/admin")
-public class LoginController extends BaseController{
+public class AdminController extends BaseController{
     @Resource
     AdminRepository adminDb;
 
@@ -26,7 +25,7 @@ public class LoginController extends BaseController{
 
     @RequestMapping("/login")
     @LoginIgnore
-    public Object login(@NonNull String username,@NonNull String key, @NonNull String timestamp){
+    public Object login(@NonNull String username,@NonNull String password){
         if(!Check.checkValidUsername(username)){
             return buildResponse(ErrorEnum.ERROR_USERNAME_INVALID);
         }
@@ -37,7 +36,7 @@ public class LoginController extends BaseController{
             return buildResponse(ErrorEnum.ERROR_USERNAME_INVALID);
         }
         try {
-            if(key.equals(Util.Md5(username + admin.getPassword() + timestamp))){
+            if(password.equals(admin.getPassword())){
                 setAdmin(admin);
                 return buildSuccessResp(null);
             } else {
@@ -51,18 +50,13 @@ public class LoginController extends BaseController{
 
 
     @RequestMapping("/add")
-    public Object add(@NonNull String username, @NonNull String password, @NonNull String confirmPassword){
+    public Object add(@NonNull String username, @NonNull String password){
         // check valid password
         if(!Check.checkValidPassword(password)){
             return buildResponse(ErrorEnum.ERROR_PASSWORD_INVALID);
         }
         if(!Check.checkValidUsername(username)){
             return buildResponse(ErrorEnum.ERROR_USERNAME_INVALID);
-        }
-
-        // check
-        if(!password.equals(confirmPassword)){
-            return buildResponse(ErrorEnum.ERROR_PASSWORD_NOT_SAME);
         }
 
         // check if exist

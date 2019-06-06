@@ -1,6 +1,16 @@
 package com.se.account.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Check {
+    static Map<Integer, CurrencyEnum> supportCurrency;
+    static {
+        supportCurrency = new HashMap<>();
+        for(CurrencyEnum currencyEnum : CurrencyEnum.values()){
+            supportCurrency.put(currencyEnum.getType(), currencyEnum);
+        }
+    }
 
     public static boolean checkValidPassword(String password){
         if(password == null){
@@ -28,5 +38,9 @@ public class Check {
             }
         }
         return true;
+    }
+
+    public static boolean checkSupportCurrency(int currency){
+        return supportCurrency.containsKey(currency);
     }
 }
