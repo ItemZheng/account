@@ -5,7 +5,6 @@ public enum ErrorEnum {
     ERROR_SERVER_INTERNAL_ERROR(10000, "Internal Server Error", "服务器内部错误"),
     ERROR_USERNAME_PASSWORD_ERROR(1, "Username Or Password Error", "用户名或密码错误"),
     ERROR_USER_NOT_LOGIN(2, "User Not Login In", "用户未登陆"),
-    ERROR_PASSWORD_NOT_SAME(3, "Password Is Not Same", "两次密码输入不一致"),
     ERROR_PASSWORD_INVALID(4, "Password Is Invalid", "非法密码"),
     ERROR_USERNAME_EXIST(5, "Username Exists", "用户名已经存在"),
     ERROR_USERNAME_INVALID(6, "Username Is Invalid", "非法用户名"),
