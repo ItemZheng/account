@@ -1,0 +1,38 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Login</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script type="text/javascript" src="/login.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="/login.css"/>
+</head>
+<body>
+    <div class="container login-container">
+        <div class="row">
+            <div class="col-md-3">
+            </div>
+            <div class="col-md-6 login-form-1">
+                <h3>Log In</h3>
+                <form id="container-form" target="_blank" action="#" method="get">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="email-input" placeholder="Your Email *" value="" name="email" />
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="password-input" placeholder="Your Password *" value="" name="password" />
+                    </div>
+                    <div class="form-group">
+                        <input type="button" class="btnSubmit" id="login" value="Login" />
+                    </div>
+					<div class="form-group" id="warning">
+						Invalid username/password
+					</div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

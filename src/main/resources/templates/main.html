@@ -1,0 +1,211 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+	    <title>Main</title>
+	    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+		<script type="text/javascript" src="/main.js"></script>
+		<link rel="stylesheet" href="/main.css">
+
+	</head>
+	<body>
+		<div id="form1-container" class="wrapper fadeInDown">
+			<div id="formContent1">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title1" class="fadeIn first">
+					<h1>销户</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="text" id="identity-idc" class="fadeIn second" name="identityId" placeholder="身份证号">
+					<input type="text" id="secIDc" class="fadeIn third" name="securitiesAccountId" placeholder="证券账户ID">
+					<input type="button" class="fadeIn fourth btnFloat" id="cancelBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter1">
+					<a class="underlineHover" href="#" id="go-back1">Back</a>
+				</div>
+			</div>
+		</div>
+		<div id="form2-container" class="wrapper fadeInDown">
+			<div id="formContent2">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title2" class="fadeIn first">
+					<h1>修改交易密码</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="password" id="originTradePwd" class="fadeIn second" name="oriPassword" placeholder="请输入原密码">
+					<input type="password" id="newTradePwd" class="fadeIn third" name="newPassword" placeholder="请输入新密码">
+					<input type="button" class="fadeIn fourth btnFloat" id="tpBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter2">
+					<a class="underlineHover" href="#" id="go-back2">Back</a>
+				</div>
+			</div>
+		</div>
+		<div id="form3-container" class="wrapper fadeInDown">
+			<div id="formContent3">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title3" class="fadeIn first">
+					<h1>修改取款密码</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="password" id="originWthdrPwd" class="fadeIn second" name="login" placeholder="请输入原密码">
+					<input type="password" id="newWthdrPwd" class="fadeIn third" name="login" placeholder="请输入新密码">
+					<input type="button" class="fadeIn fourth btnFloat" id="wpBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter3">
+					<a class="underlineHover" href="#" id="go-back3">Back</a>
+				</div>
+			</div>
+		</div>
+		<div id="form4-container" class="wrapper fadeInDown">
+			<div id="formContent4">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title4" class="fadeIn first">
+					<h1>挂失</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="text" id="identity-idl" class="fadeIn second" name="identityId" placeholder="身份证号码">
+					<input type="text" id="secIdl" class="fadeIn second" name="securitiesAccountId" placeholder="证券账户ID">
+					<input type="button" class="fadeIn third btnFloat" id="lossBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter4">
+					<a class="underlineHover" href="#" id="go-back4">Back</a>
+				</div>
+			</div>
+		</div>
+		<div id="form5-container" class="wrapper fadeInDown">
+			<div id="formContent5">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title5" class="fadeIn first">
+					<h1>补办</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="text" id="identity-idr" class="fadeIn second" name="identityId" placeholder="身份证号">
+					<input type="text" id="secIdr" class="fadeIn second" name="securitiesAccountId" placeholder="证券账户ID">
+					<input type="password" id="tPassword" class="fadeIn second" name="transactionPwd" placeholder="交易密码">
+					<input type="password" id="wPassword" class="fadeIn second" name="withdrawalPwd" placeholder="取款密码">
+					<input type="button" class="fadeIn second btnFloat" id="reBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter5">
+					<a class="underlineHover" href="#" id="go-back5">Back</a>
+				</div>
+			</div>
+		</div>
+		<div id="form6-container" class="wrapper fadeInDown">
+			<div id="formContent6">
+				<!-- Tabs Titles -->
+
+				<!-- Icon -->
+				<div id="title6" class="fadeIn first">
+					<h1>充值或提现</h1>
+				</div>
+
+				<!-- Login Form -->
+				<form>
+					<input type="text" id="MoneyAmount" class="fadeIn second" name="amount" placeholder="取现或存款金额">
+					<input type="password" id="ioPasswd" class="fadeIn second" name="withdrawalPwd" placeholder="取款密码">
+					<br>
+					<label for="ioDir">取现</label><input type="checkbox" id="ioDir" class="fadeIn second" name="ioDir" value="">
+					<input type="button" class="fadeIn second btnFloat" id="ioBtn" value="确定">
+				</form>
+
+				<!-- Remind Password -->
+				<div id="formFooter6">
+					<a class="underlineHover" href="#" id="go-back6">Back</a>
+				</div>
+			</div>
+		</div>
+
+    	<div class="container search-table">
+            <div class="search-box">
+                <div class="row">
+                    <div class="col-md-3" style="margin-top: 3%" >
+                        <h5>在此搜索用户ID</h5>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="text" id="accountID-search" class="form-control" placeholder="回车发起搜索">
+                    </div>
+					<div id="warning" class="col-md-3" style="margin-top: 3%" >
+						不存在该ID-<a class="underlineHover" style="color: #DC143C" href="#" id="newAccount">新建账户</a>
+					</div>
+                </div>
+            </div>
+            <div class="info-list">
+                <table class="table" id="info-table">
+                    <thead>
+                        <tr>
+                            <th>信息类别</th>
+                            <th>详细信息</th>
+							<th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>证券账户ID</td>
+                        <td id="accountDetail">--/--</td>
+						<td></td>
+                    </tr>
+                    <tr>
+                        <td>账户余额</td>
+                        <td id="balanceDetail">--/--</td>
+						<td><input type="button" class="btnSubmit" id="editBalance" value="充值/提现" /></td>
+                    </tr>
+					<tr>
+						<td>交易密码</td>
+						<td id="tradePwd">--/--</td>
+						<td><input type="button" class="btnSubmit" id="editTradePwd" value="更改交易密码" /></td>
+					</tr>
+					<tr>
+						<td>取款密码</td>
+						<td id="wthdrPwd">--/--</td>
+						<td><input type="button" class="btnSubmit" id="editWthdrPwd" value="更改取款密码" /></td>
+					</tr>
+                    <tr>
+                        <td>挂失状态</td>
+                        <td id="balanceStatus">--/--</td>
+						<td><input type="button" class="btnSubmit" id="LossOrReissue" value="挂失/补办" /></td>
+                    </tr>
+                    <tr>
+                        <td>账户状态</td>
+                        <td id="accountStatus">--/--</td>
+						<td><input type="button" class="btnSubmit-d" id="cancel" value="销户" /></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+	</body>
+</html>
