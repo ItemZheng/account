@@ -28,6 +28,7 @@ public enum ErrorEnum {
     ERROR_ALREADY_DECREASED(24, "Already been decreased", "该记录已经扣款"),
     ERROR_ALREADY_RECOVERED(25, "Already been recovered", "该记录已经恢复"),
     ERROR_RECORD_TYPE_ERROR(26, "Record type error", "记录类型错误"),
+    ERROR_IDENTITY_AUTH_FAIL(27, "Identity auth fail", "身份验证失败"),
 
     ;
     int code;       // error code
