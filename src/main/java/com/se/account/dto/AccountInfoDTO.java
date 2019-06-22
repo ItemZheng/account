@@ -7,7 +7,7 @@ import java.util.Date;
 @Data
 public class AccountInfoDTO {
     private Long id;
-    private Long securities_account_id; // 证券账户id
+    private String securities_account_id; // 证券账户id
     private Integer status;             // 0 - 正常   1 - 挂失
     private long create_staff;          // 创建账户的工作人员id
     private Date create_time;           // 创建时间

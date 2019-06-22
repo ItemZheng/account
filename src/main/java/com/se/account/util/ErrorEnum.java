@@ -29,7 +29,7 @@ public enum ErrorEnum {
     ERROR_ALREADY_RECOVERED(25, "Already been recovered", "该记录已经恢复"),
     ERROR_RECORD_TYPE_ERROR(26, "Record type error", "记录类型错误"),
     ERROR_IDENTITY_AUTH_FAIL(27, "Identity auth fail", "身份验证失败"),
-
+    ERROR_FREEZE_AMOUNT_LESS_THAN_DECREASE_AMOUNT(28, "Freeze amount less than decrease amount", "冻结资金小于扣除资金"),
     ;
     int code;       // error code
     String enDes;   // english error description

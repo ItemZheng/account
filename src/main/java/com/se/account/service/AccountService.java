@@ -33,7 +33,7 @@ public class AccountService {
     @Resource
     RecordRepository recordDb;
 
-    public long create(long securitiesAccountId, String transactionPwd, String withdrawalPwd, int currency, long adminId) throws ServiceException {
+    public long create(String securitiesAccountId, String transactionPwd, String withdrawalPwd, int currency, long adminId) throws ServiceException {
         if (!Check.checkValidPassword(transactionPwd) || !Check.checkValidPassword(withdrawalPwd)) {
             log.error("Invalid password: " + transactionPwd + ":" + withdrawalPwd);
             throw new ServiceException(ErrorEnum.ERROR_PASSWORD_INVALID);
@@ -159,7 +159,7 @@ public class AccountService {
         }
     }
 
-    public void reportLoss(long securitiesAccountId, long adminId) throws ServiceException {
+    public void reportLoss(String securitiesAccountId, long adminId) throws ServiceException {
         // get account by securitiesAccountId
         Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
         if(account == null){
@@ -197,7 +197,7 @@ public class AccountService {
         }
     }
 
-    public void reissue(long securitiesAccountId, String transactionPwd, String withdrawalPwd, long adminId)throws ServiceException{
+    public void reissue(String securitiesAccountId, String transactionPwd, String withdrawalPwd, long adminId)throws ServiceException{
         // get account and check status
         Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
         if(account == null){
@@ -244,13 +244,13 @@ public class AccountService {
         }
     }
 
-    public void cancel(long securitiesAccountId, long accountId, long adminId)throws ServiceException{
+    public void cancel(String securitiesAccountId, long accountId, long adminId)throws ServiceException{
         // 检查账户安全
         Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
         Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(accountId, false);
         validateAccountAndBalance(account, balance);
         // 检查是否匹配
-        if(account.getSecuritiesAccountId() != securitiesAccountId){
+        if(account.getSecuritiesAccountId().equals(securitiesAccountId)){
             throw new ServiceException(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_MATCH_FUND_ACCOUNT);
         }
         // 检查资金余额
@@ -304,12 +304,13 @@ public class AccountService {
     }
 
     // 股票指令发出时，冻结/预扣除
-    public long freeze(double amount, long accountId) throws ServiceException{
-        if (amount <= 0) {
-            throw new ServiceException(ErrorEnum.ERROR_AMOUNT_ERROR);
+    public long freeze(double amount, String securitiesAccountId) throws ServiceException{
+        Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
+        if(account == null){
+            throw new ServiceException(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_HAS_FUND_ACCOUNT);
         }
 
-        Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
+        long accountId = account.getId();
         Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(accountId, false);
         validateAccountAndBalance(account, balance);
         checkBalance(balance, amount);
@@ -341,9 +342,14 @@ public class AccountService {
     }
 
     // 股票购买成功时，扣除
-    public void decrease(long recordId) throws ServiceException{
+    public void decrease(long recordId, double amount) throws ServiceException{
         Record record = recordDb.getRecordByIdAndRemoved(recordId, false);
         checkPreDecreaseRecord(record);
+
+        // check amount
+        if(record.getAmount() < amount){
+            throw new ServiceException(ErrorEnum.ERROR_FREEZE_AMOUNT_LESS_THAN_DECREASE_AMOUNT);
+        }
 
         // get balance
         Balance balance = balanceDb.getBalanceByIdAndRemoved(record.getBalanceId(), false);
@@ -353,14 +359,15 @@ public class AccountService {
 
         // update
         Date timeNow = new Date();
-        balance.setBalance(balance.getBalance() - record.getAmount());
+        balance.setBalance(balance.getBalance() - amount);
+        balance.setAvailable_balance(balance.getAvailable_balance() + record.getAmount() - amount);
         balance.setModify_staff(0);
         balance.setModify_time(timeNow);
 
         // Record
         Record r = new Record();
         r.setBalanceId(balance.getId());
-        r.setAmount(record.getAmount());
+        r.setAmount(amount);
         r.setOperate_code(Constant.BALANCE_OPCODE_REDUCE);
         r.setPreDecreaseId(recordId);
         r.setCreate_staff(0);
