@@ -4,10 +4,10 @@ $(document).ready(function () {
 		var accountID = $("#account-id").val();
 		var tradePasswd = $("#trade-passwd").val();
 		var wthdrawPasswd = $("#wthdraw-passwd").val();
-		var currencyType = ($("#currency-cb").val()=='on') ? 1 : 0;
+		var currencyType = $('#currency-sl').val();
 
 		// Checking for blank fields.
-		if (ID == '' || accountID == '' || tradePasswd == '' || wthdrawPasswd == '') {
+		if (ID == '' || accountID == '' || tradePasswd == '' || wthdrawPasswd == '' || currencyType == null) {
 			$("#warning").text("Please fill all the fields");
 			$("#warning").fadeIn();
 		} else {
@@ -23,7 +23,7 @@ $(document).ready(function () {
 
 			var backEndPrefix = "/account/"
 			var frontEndPrefix = "/fe/"
-			$.post(backEndPrefix+"create", {identityId: ID, securitiesAccountId: accountID, transactionPwd: tradePasswd, withdrawalPwd: wthdrawPasswd, currency: currencyType},
+			$.post(backEndPrefix+"create", {identityId: ID, securitiesAccountId: accountID, transactionPwd: tradePasswd, withdrawalPwd: wthdrawPasswd, currency: currencyType - 1},
 				function (data) {
 					var rtnJsonObj = data;
 					var rtnCode = rtnJsonObj.code;

@@ -12,6 +12,7 @@
 
 	</head>
 	<body>
+
 		<div id="form1-container" class="wrapper fadeInDown">
 			<div id="formContent1">
 				<!-- Tabs Titles -->
@@ -137,8 +138,13 @@
 				<form>
 					<input type="text" id="MoneyAmount" class="fadeIn second" name="amount" placeholder="取现或存款金额">
 					<input type="password" id="ioPasswd" class="fadeIn second" name="withdrawalPwd" placeholder="取款密码">
+					<label for="ioDir"></label>
+					<select id="ioDir" class="form-control fadeIn second" name="ioDir" style="width: 50%; margin-left: 25%">
+						<option value="" disabled selected>选择充值或取现</option>
+						<option value="0">充值</option>
+						<option value="1">取现</option>
+					</select>
 					<br>
-					<label for="ioDir">取现</label><input type="checkbox" id="ioDir" class="fadeIn second" name="ioDir" value="">
 					<input type="button" class="fadeIn second btnFloat" id="ioBtn" value="确定">
 				</form>
 
@@ -158,9 +164,10 @@
                     <div class="col-md-6">
                         <input type="text" id="accountID-search" class="form-control" placeholder="回车发起搜索">
                     </div>
-					<div id="warning" class="col-md-3" style="margin-top: 3%" >
-						不存在该ID-<a class="underlineHover" style="color: #DC143C" href="#" id="newAccount">新建账户</a>
+					<div id="warning" class="col-md-2" style="margin-top: 3%" >
+						<a class="underlineHover" style="color: #99cc33" href="#" id="newAccount">新建账户</a>
 					</div>
+					<div class="col-md-1"></div>
                 </div>
             </div>
             <div class="info-list">
@@ -184,6 +191,11 @@
 						<td><input type="button" class="btnSubmit" id="editBalance" value="充值/提现" /></td>
                     </tr>
 					<tr>
+						<td>可用余额</td>
+						<td id="availableMoney">--/--</td>
+						<td></td>
+					</tr>
+					<tr>
 						<td>交易密码</td>
 						<td id="tradePwd">--/--</td>
 						<td><input type="button" class="btnSubmit" id="editTradePwd" value="更改交易密码" /></td>
@@ -201,7 +213,9 @@
                     <tr>
                         <td>账户状态</td>
                         <td id="accountStatus">--/--</td>
-						<td><input type="button" class="btnSubmit-d" id="cancel" value="销户" /></td>
+						<td><input type="button" class="btnSubmit-d" id="cancel" value="销户"
+								   data-container="body" data-toggle="popover" data-placement="right"
+								   data-content="该账户暂时不可被销户"></td>
                     </tr>
                     </tbody>
                 </table>

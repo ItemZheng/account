@@ -2,16 +2,14 @@ var currentAccountID = "";
 var backEndPrefix = "/account/"
 var frontEndPrefix = "/fe/"
 
-function checkLogin() {
-	$.post("/admin/info",
-		function (data) {
-			console.log(data);
-			var rtnJsonObj = data;
-			var rtnCode = rtnJsonObj.code;
-			if (rtnCode != 0) {
-				window.location.replace(frontEndPrefix+"login");
-			}
-		});
+function clearInfos() {
+	currentAccountID = "";
+	$('#accountDetail').text("--/--");
+	$('#balanceDetail').text("--/--");
+	$('#availableMoney').text("--/--");
+	$('#balanceStatus').text("--/--");
+	$('#accountStatus').text("--/--");
+	$("#warning").fadeIn();
 }
 
 function enterKey(event) {
@@ -30,7 +28,8 @@ function enterKey(event) {
 					var rtnData = rtnJsonObj.data;
 					if (rtnCode == 0) {
 						$('#accountDetail').text(rtnData.securities_account_id);
-						$('#balanceDetail').text(rtnData.balanceInfo.available_balance);
+						$('#balanceDetail').text(rtnData.balanceInfo.balance);
+						$('#availableMoney').text(rtnData.balanceInfo.available_balance);
 						if (rtnData.balanceInfo.status == 0)
 							$('#balanceStatus').text("正常");
 						else
@@ -39,23 +38,18 @@ function enterKey(event) {
 							$('#accountStatus').text("正常");
 						else
 							$('#accountStatus').text("冻结");
-						$("#warning").fadeOut();
 					} else {
-						currentAccountID = "";
-						$('#accountDetail').text("--/--");
-						$('#balanceDetail').text("--/--");
-						$('#balanceStatus').text("--/--");
-						$('#accountStatus').text("--/--");
-						$("#warning").fadeIn();
+						alert("找不到该用户");
+						clearInfos();
 					}
 				});
+		} else {
+			clearInfos();
 		}
 	}
 }
 
 $(document).ready(function () {
-	console.log("what?");
-	checkLogin();
 
 	$('#form1-container').fadeOut("fast", function () {
 		$('#form1-container').css("visibility", "visible");
@@ -77,8 +71,13 @@ $(document).ready(function () {
 	});
 
 	$('#cancel').click(function () {
-		if ($('#accountStatus').text() == "正常")
+		if ($('#accountStatus').text() == "正常") {
 			$('#form1-container').fadeIn();
+		}
+		else {
+			// TODO: Error Message
+			alert("当前账户暂时不可被销户")
+		}
 	});
 	$('#editBalance').click(function () {
 		$('#form6-container').fadeIn();
@@ -137,11 +136,14 @@ $(document).ready(function () {
 						currentAccountID = "";
 						$('#accountDetail').text("--/--");
 						$('#balanceDetail').text("--/--");
+						$('#availableMoney').text("--/--")
 						$('#balanceStatus').text("--/--");
 						$('#accountStatus').text("--/--");
 						$('#identity-idc').text("");
 						$('#secIDc').text("");
 						$('#form1-container').fadeOut();
+					} else {
+						alert("销户失败");
 					}
 				});
 		}
@@ -165,6 +167,8 @@ $(document).ready(function () {
 						$('#form2-container').fadeOut();
 						$('#originTradePwd').text();
 						$('#newTradePwd').text();
+					} else {
+						alert("修改密码失败");
 					}
 				});
 		}
@@ -188,6 +192,8 @@ $(document).ready(function () {
 						$('#form3-container').fadeOut();
 						$('#originWthdrPwd').text("");
 						$('#newWthdrPwd').text("");
+					} else {
+						alert("修改密码失败");
 					}
 				});
 		}
@@ -212,6 +218,8 @@ $(document).ready(function () {
 						$('#secIdl').text("");
 						var event = Object.create({keyCode:13});
 						enterKey(event);
+					} else {
+						alert("挂失失败");
 					}
 				});
 		}
@@ -238,6 +246,7 @@ $(document).ready(function () {
 						currentAccountID = "";
 						$('#accountDetail').text("--/--");
 						$('#balanceDetail').text("--/--");
+						$('#availableMoney').text("--/--");
 						$('#balanceStatus').text("--/--");
 						$('#accountStatus').text("--/--");
 						$('#identity-idr').text("");
@@ -245,6 +254,8 @@ $(document).ready(function () {
 						$('#tPassword').text("");
 						$('#wPassword').text("");
 						$('#form5-container').fadeOut();
+					} else {
+						alert("补办失败");
 					}
 				});
 		}
@@ -252,7 +263,7 @@ $(document).ready(function () {
 	$('#ioBtn').click(function() {
 		var inputAmount = $('#MoneyAmount').val();
 		var inputPwd = $('#ioPasswd').val();
-		var outCheck = $('input[type=checkbox]:checked').length;
+		var outCheck = $('').length;
 
 		console.log(outCheck);
 
@@ -279,6 +290,8 @@ $(document).ready(function () {
 						$('#secIdl').text("");
 						var event = Object.create({keyCode:13});
 						enterKey(event);
+					} else {
+						alert("充值/提现失败");
 					}
 				});
 		}

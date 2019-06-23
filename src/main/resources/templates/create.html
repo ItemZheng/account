@@ -19,24 +19,30 @@
                     <div id="create-box" class="col-md-12">
                         <form id="create-form" target="_blank" class="form" action="#" method="get">
                             <div class="form-group">
-                                <label for="identity-id" class="text-info">身份证号：</label><br>
+                                <label for="identity-id" class="blue-text" style="color: #0062cc">身份证号：</label><br>
                                 <input type="text" name="identityId" id="identity-id" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="account-id" class="text-info">证券账户id：</label><br>
+                                <label for="account-id" class="blue-text" style="color: #0062cc">证券账户id：</label><br>
                                 <input type="text" name="securitiesAccountId" id="account-id" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="trade-passwd" class="text-info">交易密码：</label><br>
+                                <label for="trade-passwd" class="blue-text" style="color: #0062cc">交易密码：</label><br>
                                 <input type="password" name="transactionPwd" id="trade-passwd" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="wthdraw-passwd" class="text-info">取款密码：</label><br>
+                                <label for="wthdraw-passwd" class="blue-text" style="color: #0062cc">取款密码：</label><br>
                                 <input type="password" name="withdrawalPwd" id="wthdraw-passwd" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label for="currency-cb" class="text-info"><span>是否为美元账户</span> <span><input id="currency-cb" name="currency" type="checkbox"></span></label><br>
-                                <input type="button" name="submit" class="btn btn-info btn-md" id="submit-btn" value="提交">
+                                <label for="currency-sl" class="blue-text" style="color: #0062cc">货币种类：</label>
+                                    <select id="currency-sl" class="form-control">
+                                        <option value="" disabled selected>选择货币种类</option>
+                                        <option value="1">人民币</option>
+                                        <option value="2">美元</option>
+                                    </select>
+                                <br>
+                                <input type="button" name="submit" class="btn btn-md" style="background: #0062cc; color: #FFF;" id="submit-btn" value="提交">
                             </div>
                             <div class="form-group" id="warning">
 								Invalid username/password

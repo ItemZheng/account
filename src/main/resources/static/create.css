@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    background-color: #17a2b8;
+    background-color: #0062cc;
     height: 100vh;
   }
   #create .container #create-row #create-column #create-box {
@@ -24,3 +24,6 @@ body {
     text-decoration: none;
     display: none;
 }
+  .blue-text .btn-info {
+	  color: #0062cc;
+  }

@@ -1,6 +1,13 @@
 h5{
 	color: #fff;
 }
+
+#cancel-warning{
+	position:absolute;
+	z-index:1;
+	visibility: hidden;
+}
+
 .search-table{
 	padding: 10%;
 }
@@ -52,7 +59,6 @@ h5{
 	color: #ababab;
 	font-weight: 600;
 	text-decoration: none;
-	display: none;
 }
 
 
@@ -131,7 +137,7 @@ h2 {
 	text-align: center;
 }
 
-#formFooter1, #formFooter2, #formFooter3, #formFooter4, #formFooter5, #formContent6e {
+#formFooter1, #formFooter2, #formFooter3, #formFooter4, #formFooter5, #formFooter6 {
 	background-color: #f6f6f6;
 	border-top: 1px solid #dce8f1;
 	padding: 25px;
