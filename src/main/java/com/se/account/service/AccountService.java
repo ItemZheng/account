@@ -1,5 +1,6 @@
 package com.se.account.service;
 
+import com.google.gson.Gson;
 import com.se.account.dal.AccountRepository;
 import com.se.account.dal.BalanceRepository;
 import com.se.account.dal.RecordRepository;
@@ -7,16 +8,16 @@ import com.se.account.dal.transaction.AccountTransaction;
 import com.se.account.domain.Account;
 import com.se.account.domain.Balance;
 import com.se.account.domain.Record;
-import com.se.account.util.Check;
-import com.se.account.util.Constant;
-import com.se.account.util.ErrorEnum;
-import com.se.account.util.ServiceException;
+import com.se.account.domain.RpcResponse;
+import com.se.account.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -32,6 +33,11 @@ public class AccountService {
 
     @Resource
     RecordRepository recordDb;
+
+    @Resource
+    Gson gson;
+
+    String accountHost = "http://120.78.80.77:8081";
 
     public long create(String securitiesAccountId, String transactionPwd, String withdrawalPwd, int currency, long adminId) throws ServiceException {
         if (!Check.checkValidPassword(transactionPwd) || !Check.checkValidPassword(withdrawalPwd)) {
@@ -64,7 +70,7 @@ public class AccountService {
         balance.setStatus(Constant.BALANCE_STATUS_NORMAL);
         balance.setRemoved(false);
 
-        // todo 证券账户解冻
+        freezeSecuritiesAccount(Constant.ACTION_RECOVER_ACCOUNT, securitiesAccountId);
 
         // save account and balance
         try {
@@ -188,7 +194,7 @@ public class AccountService {
         balance.setModify_time(timeNow);
         balance.setModify_staff(adminId);
 
-        // todo 证券帐户下所有的证券予以冻结;
+        freezeSecuritiesAccount(Constant.ACTION_FREEZE_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.saveAccountAndBalanceDB(account, balance);
         } catch (Exception e) {
@@ -235,7 +241,7 @@ public class AccountService {
         balance.setStatus(Constant.BALANCE_STATUS_NORMAL);
 
         // 更新数据库
-        // todo 证券账户所有证券解冻
+        freezeSecuritiesAccount(Constant.ACTION_RECOVER_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.saveAccountAndBalanceDB(account, balance);
         } catch (Exception e) {
@@ -273,7 +279,7 @@ public class AccountService {
                 record.setRemoved(true);
             }
         }
-        // todo 证券账户所有证券解冻
+        freezeSecuritiesAccount(Constant.ACTION_FREEZE_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.removeDb(account, balance, records);
         } catch (Exception e) {
@@ -430,4 +436,44 @@ public class AccountService {
         }
     }
 
+    // 验证身份证和证券账户是否匹配
+    public void auth(String securitiesAccountId, String identityId)throws ServiceException{
+        if(accountHost.equals("")){
+            return;
+        }
+        String url = accountHost + "/checkID";
+        Map<String, String> args = new HashMap<>();
+        args.put("account_id", securitiesAccountId);
+        args.put("id_number", identityId + "");
+        // Get response
+        String responseStr = Util.httpGet(url, args);
+        RpcResponse rpcResponse = gson.fromJson(responseStr, RpcResponse.class);
+        if(!rpcResponse.getState().equals("true")){
+            throw new ServiceException(ErrorEnum.ERROR_IDENTITY_AUTH_FAIL);
+        }
+    }
+
+    // 冻结证券账户
+    public void freezeSecuritiesAccount(int action, String securitiesAccountId) throws ServiceException{
+        if(accountHost.equals("")){
+            return;
+        }
+        String url = accountHost + "/adminFrozen";
+        Map<String, String> args = new HashMap<>();
+        args.put("account_id", securitiesAccountId);
+        if(action == Constant.ACTION_FREEZE_ACCOUNT){
+            args.put("status", "1");
+        } else {
+            args.put("status", "0");
+        }
+        // Get response
+        String responseStr = Util.httpGet(url, args);
+        RpcResponse rpcResponse = gson.fromJson(responseStr, RpcResponse.class);
+        if(!rpcResponse.getState().equals("true")){
+            if(action == Constant.ACTION_FREEZE_ACCOUNT)
+                throw new ServiceException(ErrorEnum.ERROR_FREEZE_SECURITIES_ACCOUNT);
+            else
+                throw new ServiceException(ErrorEnum.ERROR_RECOVER_SECURITIES_ACCOUNT);
+        }
+    }
 }

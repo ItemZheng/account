@@ -30,6 +30,9 @@ public enum ErrorEnum {
     ERROR_RECORD_TYPE_ERROR(26, "Record type error", "记录类型错误"),
     ERROR_IDENTITY_AUTH_FAIL(27, "Identity auth fail", "身份验证失败"),
     ERROR_FREEZE_AMOUNT_LESS_THAN_DECREASE_AMOUNT(28, "Freeze amount less than decrease amount", "冻结资金小于扣除资金"),
+    ERROR_GET_NO_RESPONSE_FROM_HOST(29, "Get no response from host", "从服务器未返回数据"),
+    ERROR_FREEZE_SECURITIES_ACCOUNT(30, "Error to freeze securities account", "证券账户冻结失败"),
+    ERROR_RECOVER_SECURITIES_ACCOUNT(31, "Error to recover securities account", "证券账户解冻失败"),
     ;
     int code;       // error code
     String enDes;   // english error description

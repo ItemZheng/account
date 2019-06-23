@@ -13,6 +13,7 @@ import com.se.account.util.Constant;
 import com.se.account.util.ErrorEnum;
 import com.se.account.util.ServiceException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,7 +25,6 @@ import java.util.Date;
 @RequestMapping("/account")
 @Slf4j
 public class AccountController extends BaseController{
-    // todo 每年定时发放利息
     @Resource
     AccountService accountService;
 
@@ -43,9 +43,14 @@ public class AccountController extends BaseController{
     *   @return accountId
     * */
     @RequestMapping("/create")
-    public Object create(long identityId, String securitiesAccountId,
+    public Object create(String identityId, String securitiesAccountId,
                          @NotNull String transactionPwd, @NotNull String withdrawalPwd, int currency){
-        // todo check match identityId and securitiesAccountId
+        try {
+            accountService.auth(securitiesAccountId, identityId);
+        } catch (ServiceException e){
+            log.error("Create found account error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
         if(accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false) != null){
             return buildResponse(ErrorEnum.ERROR_SECURITIES_ACCOUNT_HAS_FUND_ACCOUNT);
         }
@@ -182,9 +187,9 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/reportLoss")
-    public Object reportLoss(long identityId, String securitiesAccountId){
-        // todo check match identityId and securitiesAccountId
+    public Object reportLoss(String identityId, String securitiesAccountId){
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.reportLoss(securitiesAccountId, getAdmin().getId());
         }catch (ServiceException e){
             log.error("Report Loss error: " + e.getErrorEnum().getEnDes());
@@ -194,10 +199,10 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/reissue")
-    public Object reissue(long identityId, String securitiesAccountId,
+    public Object reissue(String identityId, String securitiesAccountId,
                           @NotNull String transactionPwd, @NotNull String withdrawalPwd){
-        // todo check match identityId and securitiesAccountId
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.reissue(securitiesAccountId, transactionPwd, withdrawalPwd, getAdmin().getId());
             return buildSuccessResp(null);
         }catch (ServiceException e){
@@ -207,9 +212,9 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/cancel")
-    public Object cancel(long identityId, String securitiesAccountId, long accountId){
-        // todo check match identityId and securitiesAccountId
+    public Object cancel(String identityId, String securitiesAccountId, long accountId){
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.cancel(securitiesAccountId, accountId, getAdmin().getId());
             return buildSuccessResp(null);
         }catch (ServiceException e){
@@ -270,7 +275,7 @@ public class AccountController extends BaseController{
     public Object clientLogin(String accountId){
         Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(accountId, false);
         if(account == null){
-            return buildResponse(ErrorEnum.ERROR_ACCOUNT_NOT_EXIST);
+            return buildResponse(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_HAS_FUND_ACCOUNT);
         }
         Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(account.getId(), false);
         if(balance == null){
