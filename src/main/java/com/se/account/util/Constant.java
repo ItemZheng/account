@@ -23,4 +23,8 @@ public class Constant {
     // 余额状态
     public static final int BALANCE_STATUS_NORMAL = 0;      // 正常
     public static final int BALANCE_STATUS_FREEZE = 1;      // 冻结
+
+    // 证券账户Action
+    public static final int ACTION_FREEZE_ACCOUNT = 0;
+    public static final int ACTION_RECOVER_ACCOUNT = 1;
 }

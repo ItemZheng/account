@@ -40,7 +40,7 @@ public class AdminController extends BaseController{
                 setAdmin(admin);
                 return buildSuccessResp(null);
             } else {
-                return buildSuccessResp(ErrorEnum.ERROR_USERNAME_PASSWORD_ERROR);
+                return buildResponse(ErrorEnum.ERROR_USERNAME_PASSWORD_ERROR);
             }
         } catch (Exception e){
             e.printStackTrace();

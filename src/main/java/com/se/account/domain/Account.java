@@ -14,7 +14,7 @@ public class Account {
     private Long id;
 
     @Column(name = "securitiesAccountId")
-    private Long securitiesAccountId; // 证券账户id
+    private String securitiesAccountId; // 证券账户id
     private String transaction_pwd;     // 交易密码
     private String withdrawal_pwd;      // 取款密码
     private Integer status;             // 0 - 正常   1 - 挂失

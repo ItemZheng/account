@@ -1,5 +1,6 @@
 package com.se.account.service;
 
+import com.google.gson.Gson;
 import com.se.account.dal.AccountRepository;
 import com.se.account.dal.BalanceRepository;
 import com.se.account.dal.RecordRepository;
@@ -7,16 +8,16 @@ import com.se.account.dal.transaction.AccountTransaction;
 import com.se.account.domain.Account;
 import com.se.account.domain.Balance;
 import com.se.account.domain.Record;
-import com.se.account.util.Check;
-import com.se.account.util.Constant;
-import com.se.account.util.ErrorEnum;
-import com.se.account.util.ServiceException;
+import com.se.account.domain.RpcResponse;
+import com.se.account.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -33,7 +34,12 @@ public class AccountService {
     @Resource
     RecordRepository recordDb;
 
-    public long create(long securitiesAccountId, String transactionPwd, String withdrawalPwd, int currency, long adminId) throws ServiceException {
+    @Resource
+    Gson gson;
+
+    String accountHost = "http://120.78.80.77:8081";
+
+    public long create(String securitiesAccountId, String transactionPwd, String withdrawalPwd, int currency, long adminId) throws ServiceException {
         if (!Check.checkValidPassword(transactionPwd) || !Check.checkValidPassword(withdrawalPwd)) {
             log.error("Invalid password: " + transactionPwd + ":" + withdrawalPwd);
             throw new ServiceException(ErrorEnum.ERROR_PASSWORD_INVALID);
@@ -64,7 +70,7 @@ public class AccountService {
         balance.setStatus(Constant.BALANCE_STATUS_NORMAL);
         balance.setRemoved(false);
 
-        // todo 证券账户解冻
+        freezeSecuritiesAccount(Constant.ACTION_RECOVER_ACCOUNT, securitiesAccountId);
 
         // save account and balance
         try {
@@ -159,7 +165,7 @@ public class AccountService {
         }
     }
 
-    public void reportLoss(long securitiesAccountId, long adminId) throws ServiceException {
+    public void reportLoss(String securitiesAccountId, long adminId) throws ServiceException {
         // get account by securitiesAccountId
         Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
         if(account == null){
@@ -188,7 +194,7 @@ public class AccountService {
         balance.setModify_time(timeNow);
         balance.setModify_staff(adminId);
 
-        // todo 证券帐户下所有的证券予以冻结;
+        freezeSecuritiesAccount(Constant.ACTION_FREEZE_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.saveAccountAndBalanceDB(account, balance);
         } catch (Exception e) {
@@ -197,7 +203,7 @@ public class AccountService {
         }
     }
 
-    public void reissue(long securitiesAccountId, String transactionPwd, String withdrawalPwd, long adminId)throws ServiceException{
+    public void reissue(String securitiesAccountId, String transactionPwd, String withdrawalPwd, long adminId)throws ServiceException{
         // get account and check status
         Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
         if(account == null){
@@ -235,7 +241,7 @@ public class AccountService {
         balance.setStatus(Constant.BALANCE_STATUS_NORMAL);
 
         // 更新数据库
-        // todo 证券账户所有证券解冻
+        freezeSecuritiesAccount(Constant.ACTION_RECOVER_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.saveAccountAndBalanceDB(account, balance);
         } catch (Exception e) {
@@ -244,13 +250,13 @@ public class AccountService {
         }
     }
 
-    public void cancel(long securitiesAccountId, long accountId, long adminId)throws ServiceException{
+    public void cancel(String securitiesAccountId, long accountId, long adminId)throws ServiceException{
         // 检查账户安全
         Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
         Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(accountId, false);
         validateAccountAndBalance(account, balance);
         // 检查是否匹配
-        if(account.getSecuritiesAccountId() != securitiesAccountId){
+        if(account.getSecuritiesAccountId().equals(securitiesAccountId)){
             throw new ServiceException(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_MATCH_FUND_ACCOUNT);
         }
         // 检查资金余额
@@ -273,7 +279,7 @@ public class AccountService {
                 record.setRemoved(true);
             }
         }
-        // todo 证券账户所有证券解冻
+        freezeSecuritiesAccount(Constant.ACTION_FREEZE_ACCOUNT, securitiesAccountId);
         try {
             accountTransaction.removeDb(account, balance, records);
         } catch (Exception e) {
@@ -304,12 +310,13 @@ public class AccountService {
     }
 
     // 股票指令发出时，冻结/预扣除
-    public long freeze(double amount, long accountId) throws ServiceException{
-        if (amount <= 0) {
-            throw new ServiceException(ErrorEnum.ERROR_AMOUNT_ERROR);
+    public long freeze(double amount, String securitiesAccountId) throws ServiceException{
+        Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false);
+        if(account == null){
+            throw new ServiceException(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_HAS_FUND_ACCOUNT);
         }
 
-        Account account = accountDb.getAccountByIdAndRemoved(accountId, false);
+        long accountId = account.getId();
         Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(accountId, false);
         validateAccountAndBalance(account, balance);
         checkBalance(balance, amount);
@@ -341,9 +348,14 @@ public class AccountService {
     }
 
     // 股票购买成功时，扣除
-    public void decrease(long recordId) throws ServiceException{
+    public void decrease(long recordId, double amount) throws ServiceException{
         Record record = recordDb.getRecordByIdAndRemoved(recordId, false);
         checkPreDecreaseRecord(record);
+
+        // check amount
+        if(record.getAmount() < amount){
+            throw new ServiceException(ErrorEnum.ERROR_FREEZE_AMOUNT_LESS_THAN_DECREASE_AMOUNT);
+        }
 
         // get balance
         Balance balance = balanceDb.getBalanceByIdAndRemoved(record.getBalanceId(), false);
@@ -353,14 +365,15 @@ public class AccountService {
 
         // update
         Date timeNow = new Date();
-        balance.setBalance(balance.getBalance() - record.getAmount());
+        balance.setBalance(balance.getBalance() - amount);
+        balance.setAvailable_balance(balance.getAvailable_balance() + record.getAmount() - amount);
         balance.setModify_staff(0);
         balance.setModify_time(timeNow);
 
         // Record
         Record r = new Record();
         r.setBalanceId(balance.getId());
-        r.setAmount(record.getAmount());
+        r.setAmount(amount);
         r.setOperate_code(Constant.BALANCE_OPCODE_REDUCE);
         r.setPreDecreaseId(recordId);
         r.setCreate_staff(0);
@@ -423,4 +436,44 @@ public class AccountService {
         }
     }
 
+    // 验证身份证和证券账户是否匹配
+    public void auth(String securitiesAccountId, String identityId)throws ServiceException{
+        if(accountHost.equals("")){
+            return;
+        }
+        String url = accountHost + "/checkID";
+        Map<String, String> args = new HashMap<>();
+        args.put("account_id", securitiesAccountId);
+        args.put("id_number", identityId + "");
+        // Get response
+        String responseStr = Util.httpGet(url, args);
+        RpcResponse rpcResponse = gson.fromJson(responseStr, RpcResponse.class);
+        if(!rpcResponse.getState().equals("true")){
+            throw new ServiceException(ErrorEnum.ERROR_IDENTITY_AUTH_FAIL);
+        }
+    }
+
+    // 冻结证券账户
+    public void freezeSecuritiesAccount(int action, String securitiesAccountId) throws ServiceException{
+        if(accountHost.equals("")){
+            return;
+        }
+        String url = accountHost + "/adminFrozen";
+        Map<String, String> args = new HashMap<>();
+        args.put("account_id", securitiesAccountId);
+        if(action == Constant.ACTION_FREEZE_ACCOUNT){
+            args.put("status", "1");
+        } else {
+            args.put("status", "0");
+        }
+        // Get response
+        String responseStr = Util.httpGet(url, args);
+        RpcResponse rpcResponse = gson.fromJson(responseStr, RpcResponse.class);
+        if(!rpcResponse.getState().equals("true")){
+            if(action == Constant.ACTION_FREEZE_ACCOUNT)
+                throw new ServiceException(ErrorEnum.ERROR_FREEZE_SECURITIES_ACCOUNT);
+            else
+                throw new ServiceException(ErrorEnum.ERROR_RECOVER_SECURITIES_ACCOUNT);
+        }
+    }
 }

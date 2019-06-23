@@ -1,5 +1,6 @@
 package com.se.account.controller;
 
+import com.se.account.annotation.LoginIgnore;
 import com.se.account.dal.AccountRepository;
 import com.se.account.dal.BalanceRepository;
 import com.se.account.domain.Account;
@@ -12,6 +13,7 @@ import com.se.account.util.Constant;
 import com.se.account.util.ErrorEnum;
 import com.se.account.util.ServiceException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,7 +25,6 @@ import java.util.Date;
 @RequestMapping("/account")
 @Slf4j
 public class AccountController extends BaseController{
-    // todo 每年定时发放利息
     @Resource
     AccountService accountService;
 
@@ -42,9 +43,14 @@ public class AccountController extends BaseController{
     *   @return accountId
     * */
     @RequestMapping("/create")
-    public Object create(long identityId, long securitiesAccountId,
+    public Object create(String identityId, String securitiesAccountId,
                          @NotNull String transactionPwd, @NotNull String withdrawalPwd, int currency){
-        // todo check match identityId and securitiesAccountId
+        try {
+            accountService.auth(securitiesAccountId, identityId);
+        } catch (ServiceException e){
+            log.error("Create found account error: " + e.getErrorEnum().getEnDes());
+            return buildResponse(e.getErrorEnum());
+        }
         if(accountDb.getAccountBySecuritiesAccountIdAndRemoved(securitiesAccountId, false) != null){
             return buildResponse(ErrorEnum.ERROR_SECURITIES_ACCOUNT_HAS_FUND_ACCOUNT);
         }
@@ -60,7 +66,7 @@ public class AccountController extends BaseController{
             return buildResponse(ErrorEnum.ERROR_UNSUPPORT_CURRENCY);
         }
 
-        long accountId = 0;
+        long accountId;
         try {
             accountId = accountService.create(securitiesAccountId, transactionPwd, withdrawalPwd, currency, getAdmin().getId());
         } catch (ServiceException e){
@@ -90,30 +96,7 @@ public class AccountController extends BaseController{
             return buildResponse(ErrorEnum.ERROR_BALANCE_NOT_EXIST);
         }
 
-        // balance info
-        AccountInfoDTO.BalanceInfoDTO balanceInfoDTO = new AccountInfoDTO.BalanceInfoDTO();
-        balanceInfoDTO.setId(balance.getId());
-        balanceInfoDTO.setCurrency(balance.getCurrency());
-        balanceInfoDTO.setAvailable_balance(balance.getAvailable_balance());
-        balanceInfoDTO.setBalance(balance.getBalance());
-        balanceInfoDTO.setCreate_staff(balance.getCreate_staff());
-        balanceInfoDTO.setCreate_time(balance.getCreate_time());
-        balanceInfoDTO.setModify_staff(balance.getModify_staff());
-        balanceInfoDTO.setModify_time(balance.getModify_time());
-        balanceInfoDTO.setStatus(balance.getStatus());
-
-        // Account Info
-        AccountInfoDTO accountInfoDTO = new AccountInfoDTO();
-        accountInfoDTO.setId(accountId);
-        accountInfoDTO.setSecurities_account_id(account.getSecuritiesAccountId());
-        accountInfoDTO.setStatus(account.getStatus());
-        accountInfoDTO.setBalanceInfo(balanceInfoDTO);
-        accountInfoDTO.setCreate_staff(account.getCreate_staff());
-        accountInfoDTO.setCreate_time(account.getCreate_time());
-        accountInfoDTO.setModify_staff(account.getModify_staff());
-        accountInfoDTO.setModify_time(account.getModify_time());
-
-        return buildSuccessResp(accountInfoDTO);
+        return buildSuccessResp(parseAccountInfoDTO(account, balance));
     }
 
 
@@ -204,9 +187,9 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/reportLoss")
-    public Object reportLoss(long identityId, long securitiesAccountId){
-        // todo check match identityId and securitiesAccountId
+    public Object reportLoss(String identityId, String securitiesAccountId){
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.reportLoss(securitiesAccountId, getAdmin().getId());
         }catch (ServiceException e){
             log.error("Report Loss error: " + e.getErrorEnum().getEnDes());
@@ -216,10 +199,10 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/reissue")
-    public Object reissue(long identityId, long securitiesAccountId,
+    public Object reissue(String identityId, String securitiesAccountId,
                           @NotNull String transactionPwd, @NotNull String withdrawalPwd){
-        // todo check match identityId and securitiesAccountId
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.reissue(securitiesAccountId, transactionPwd, withdrawalPwd, getAdmin().getId());
             return buildSuccessResp(null);
         }catch (ServiceException e){
@@ -229,9 +212,9 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/cancel")
-    public Object cancel(long identityId, long securitiesAccountId, long accountId){
-        // todo check match identityId and securitiesAccountId
+    public Object cancel(String identityId, String securitiesAccountId, long accountId){
         try {
+            accountService.auth(securitiesAccountId, identityId);
             accountService.cancel(securitiesAccountId, accountId, getAdmin().getId());
             return buildSuccessResp(null);
         }catch (ServiceException e){
@@ -241,7 +224,8 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/freeze")
-    public Object freeze(double amount, long accountId){
+    @LoginIgnore
+    public Object freeze(double amount, String accountId){
         try {
             return buildSuccessResp(accountService.freeze(amount, accountId));
         }catch (ServiceException e){
@@ -251,9 +235,10 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/decrease")
-    public Object freeze(long recordId){
+    @LoginIgnore
+    public Object freeze(long recordId, double amount){
         try {
-            accountService.decrease(recordId);
+            accountService.decrease(recordId, amount);
             return buildSuccessResp(null);
         }catch (ServiceException e){
             log.error("Decrease error: " + e.getErrorEnum().getEnDes());
@@ -262,6 +247,7 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/recover")
+    @LoginIgnore
     public Object recover(long recordId){
         try {
             accountService.recover(recordId);
@@ -273,6 +259,7 @@ public class AccountController extends BaseController{
     }
 
     @RequestMapping("/clientLogin")
+    @LoginIgnore
     public Object clientLogin(long accountId, String password){
         try {
             accountService.clientLogin(accountId, password);
@@ -281,5 +268,46 @@ public class AccountController extends BaseController{
             log.error("Client login error: " + e.getErrorEnum().getEnDes());
             return buildResponse(e.getErrorEnum());
         }
+    }
+
+    @RequestMapping("/clientDetail")
+    @LoginIgnore
+    public Object clientLogin(String accountId){
+        Account account = accountDb.getAccountBySecuritiesAccountIdAndRemoved(accountId, false);
+        if(account == null){
+            return buildResponse(ErrorEnum.ERROR_SECURITIES_ACCOUNT_NOT_HAS_FUND_ACCOUNT);
+        }
+        Balance balance = balanceDb.getBalanceByFundAccountIdAndRemoved(account.getId(), false);
+        if(balance == null){
+            return buildResponse(ErrorEnum.ERROR_BALANCE_NOT_EXIST);
+        }
+        return buildSuccessResp(parseAccountInfoDTO(account, balance));
+    }
+
+
+    private AccountInfoDTO parseAccountInfoDTO(Account account, Balance balance){
+        // balance info
+        AccountInfoDTO.BalanceInfoDTO balanceInfoDTO = new AccountInfoDTO.BalanceInfoDTO();
+        balanceInfoDTO.setId(balance.getId());
+        balanceInfoDTO.setCurrency(balance.getCurrency());
+        balanceInfoDTO.setAvailable_balance(balance.getAvailable_balance());
+        balanceInfoDTO.setBalance(balance.getBalance());
+        balanceInfoDTO.setCreate_staff(balance.getCreate_staff());
+        balanceInfoDTO.setCreate_time(balance.getCreate_time());
+        balanceInfoDTO.setModify_staff(balance.getModify_staff());
+        balanceInfoDTO.setModify_time(balance.getModify_time());
+        balanceInfoDTO.setStatus(balance.getStatus());
+
+        // Account Info
+        AccountInfoDTO accountInfoDTO = new AccountInfoDTO();
+        accountInfoDTO.setId(account.getId());
+        accountInfoDTO.setSecurities_account_id(account.getSecuritiesAccountId());
+        accountInfoDTO.setStatus(account.getStatus());
+        accountInfoDTO.setBalanceInfo(balanceInfoDTO);
+        accountInfoDTO.setCreate_staff(account.getCreate_staff());
+        accountInfoDTO.setCreate_time(account.getCreate_time());
+        accountInfoDTO.setModify_staff(account.getModify_staff());
+        accountInfoDTO.setModify_time(account.getModify_time());
+        return accountInfoDTO;
     }
 }
