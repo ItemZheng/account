@@ -2,6 +2,18 @@ var currentAccountID = "";
 var backEndPrefix = "/account/"
 var frontEndPrefix = "/fe/"
 
+function checkLogin() {
+	$.post("/admin/info",
+		function (data) {
+			console.log(data);
+			var rtnJsonObj = data;
+			var rtnCode = rtnJsonObj.code;
+			if (rtnCode != 0) {
+				window.location.replace(frontEndPrefix+"login");
+			}
+		});
+}
+
 function enterKey(event) {
 	if(event.keyCode == 13) {
 
@@ -42,6 +54,8 @@ function enterKey(event) {
 }
 
 $(document).ready(function () {
+	console.log("what?");
+	checkLogin();
 
 	$('#form1-container').fadeOut("fast", function () {
 		$('#form1-container').css("visibility", "visible");
@@ -196,7 +210,8 @@ $(document).ready(function () {
 						$('#form4-container').fadeOut();
 						$('#identity-idl').text("");
 						$('#secIdl').text("");
-						// TODO: 修改界面信息
+						var event = Object.create({keyCode:13});
+						enterKey(event);
 					}
 				});
 		}
